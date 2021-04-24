@@ -14,14 +14,9 @@ enum Woeid: Int {
 }
 
 struct WeatherInformation: Decodable {
-
-	let title: String
-	let consolidatedWeather: [Condition]
-
+	let title: String, consolidatedWeather: [Condition]
 	struct Condition: Decodable {
-		let weatherStateName: String
-		let minTemp: Double
-		let maxTemp: Double
+		let weatherStateName: String, minTemp: Double, maxTemp: Double
 	}
 }
 
@@ -34,7 +29,7 @@ let WeatherJsonDecoder: JSONDecoder = {
 	return jsonDecoder
 }()
 
-func decodeData(
+func decodeWeatherData(
 	result: Result<Data, Error>
 ) -> Result<WeatherInformation, Error> {
 	Result(
@@ -60,18 +55,17 @@ func weatherInfo(for id: Woeid) -> Deferred<Result<WeatherInformation, Error>> {
 		|> networkPathForId(id.rawValue) 	|> logStep
 		|> URL.init(string:) 				|> logStep
 		>=> urlRequesstWithTimeout(30) 		|> logStep
-		|> retry(asyncRequest, retries: 3) 	|> logStep
-		<&> decodeData
+		|> retry(asyncRequest)(3)			|> logStep
+		<&> decodeWeatherData 
 }
 
 zip(
 	weatherInfo(for: .stockholm),
 	weatherInfo(for: .london),
 	weatherInfo(for: .copenhagen)
-).run { stockholm, london, copenhagen in
-	print("Stockholm: \(stockholm)")
-	print("London: \(london)")
-	print("Copenhagen: \(copenhagen)")
+).map(zip)
+.run { result in
+	print(result)
 }
 
 

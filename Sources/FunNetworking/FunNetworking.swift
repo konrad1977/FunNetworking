@@ -10,6 +10,12 @@ public enum NetworkRequestError: Error {
 	case failed(Error)
 }
 
+public func syncRequest(
+	_ request: URLRequest?
+) -> IO<Result<Data, Error>> {
+	IO(deferred: asyncRequest(request))
+}
+
 // MARK: - asyncRequest
 public func asyncRequest(
 	_ request: URLRequest?
