@@ -13,7 +13,7 @@ public enum NetworkRequestError: Error {
 // MARK: - asyncRequest
 public func asyncRequest(
 	_ request: URLRequest?
-) -> Deferred<Result<Data, NetworkRequestError>> {
+) -> Deferred<Result<Data, Error>> {
 
 	return Deferred { callback in
 

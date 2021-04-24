@@ -15,3 +15,6 @@ let package = Package(
   ]
 )
 ```
+
+## Usage
+FunNetworking is a wrapper around URLSession that lets you wrapp the result of callback around a Future (Deferred). It has support Retries, but not yet cooldowns/back off feature.

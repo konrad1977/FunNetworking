@@ -25,6 +25,15 @@ struct WeatherInformation: Decodable {
 	}
 }
 
+let WeatherJsonDecoder: JSONDecoder = {
+	let jsonDecoder = JSONDecoder()
+	let formatter = DateFormatter()
+	formatter.dateFormat = "yyyy-MM-dd"
+	jsonDecoder.dateDecodingStrategy = .formatted(formatter)
+	jsonDecoder.keyDecodingStrategy = .convertFromSnakeCase
+	return jsonDecoder
+}()
+
 func decodeData(
 	result: Result<Data, Error>
 ) -> Result<WeatherInformation, Error> {
@@ -35,35 +44,35 @@ func decodeData(
 	)
 }
 
-let weatherLocationForWoeId: (Int) -> (String) -> String = {
+let networkPathForId: (Int) -> (String) -> String = {
 	id in { base in base + "location/\(id)" }
 }
-
-let WeatherJsonDecoder: JSONDecoder = {
-	let jsonDecoder = JSONDecoder()
-	let formatter = DateFormatter()
-	formatter.dateFormat = "yyyy-MM-dd"
-	jsonDecoder.dateDecodingStrategy = .formatted(formatter)
-	jsonDecoder.keyDecodingStrategy = .convertFromSnakeCase
-	return jsonDecoder
-}()
 
 func logStep<T: Any>(_ value: T) -> T { dump(value); return value }
 
 let requestWithCachePolicy = flip(curry(URLRequest.init(url:cachePolicy:timeoutInterval:)))
 let urlRequesstWithTimeout = flip(requestWithCachePolicy(.returnCacheDataElseLoad))
 
+let baseUrl = "https://www.metaweather.com/api/"
+
 func weatherInfo(for id: Woeid) -> Deferred<Result<WeatherInformation, Error>> {
-	"https://www.metaweather.com/api/"
-		|> weatherLocationForWoeId(id.rawValue)
-		|> URL.init(string:)
-		>=> urlRequesstWithTimeout(30)
-		//|> retry(asyncRequest, retries: 3)
-		|> asyncRequest
-		>>> map(decodeData)
+	baseUrl
+		|> networkPathForId(id.rawValue) 	|> logStep
+		|> URL.init(string:) 				|> logStep
+		>=> urlRequesstWithTimeout(30) 		|> logStep
+		|> retry(asyncRequest, retries: 3) 	|> logStep
+		<&> decodeData
 }
 
-weatherInfo(for: .stockholm)
-	.run { print($0) }
+zip(
+	weatherInfo(for: .stockholm),
+	weatherInfo(for: .london),
+	weatherInfo(for: .copenhagen)
+).run { stockholm, london, copenhagen in
+	print("Stockholm: \(stockholm)")
+	print("London: \(london)")
+	print("Copenhagen: \(copenhagen)")
+}
+
 
 //: [Next](@next)
