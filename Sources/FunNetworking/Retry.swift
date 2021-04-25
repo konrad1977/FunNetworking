@@ -21,12 +21,36 @@ public func retry<A, B, E: Error>(
 
 	func retry(value: A, result: Result<B, E>, currentRun: Int) -> Result<B, E> {
 		switch result {
-		case let .success(value):
-			return .success(value)
+		case .success:
+			return result
 		case let .failure(error):
 			return currentRun > 0
 				? retry(value: value, result: f(value), currentRun: currentRun - 1)
 				: .failure(error)
+		}
+	}
+	return { retries in { value in retry(value: value, result: f(value), currentRun: retries - 1) } }
+}
+
+// MARK: - Retry on Optionals
+public func retry<A, B>(
+	_ f: @escaping (A) -> B?, retries: Int
+) -> (A) -> B? {
+	retry(f)(retries)
+}
+
+public func retry<A, B>(
+	_ f: @escaping (A) -> B?
+) -> (Int) -> (A) -> B? {
+
+	func retry(value: A, result: B?, currentRun: Int) -> B? {
+		switch result {
+		case .some:
+			return result
+		case .none:
+			return currentRun > 0
+				? retry(value: value, result: f(value), currentRun: currentRun - 1)
+				: .none
 		}
 	}
 	return { retries in { value in retry(value: value, result: f(value), currentRun: retries - 1) } }
@@ -57,19 +81,19 @@ public func retry<A, B>(
 	return { retries in { value in retry(value: value, result: f(value), currentRun: retries - 1) } }
 }
 
-// MARK: - Retry on Optionals
+// MARK: - IO
 public func retry<A, B>(
-	_ f: @escaping (A) -> B?
-) -> (Int) -> (A) -> B? {
+	_ f: @escaping (A) -> IO<Result<B, Error>>
+) -> (Int) -> (A) -> IO<Result<B, Error>> {
 
-	func retry(value: A, result: B?, currentRun: Int) -> B? {
-		switch result {
-		case .none:
+	func retry(value: A, result: IO<Result<B, Error>>, currentRun: Int) -> IO<Result<B, Error>> {
+		switch result.unsafeRun() {
+		case .success:
+			return result
+		case .failure:
 			return currentRun > 0
-				? retry(value: value, result: f(value), currentRun: currentRun - 1)
-				: .none
-		case .some(let value):
-			return .some(value)
+			? retry(value: value, result: result, currentRun: currentRun - 1)
+			: result
 		}
 	}
 	return { retries in { value in retry(value: value, result: f(value), currentRun: retries - 1) } }
@@ -77,7 +101,8 @@ public func retry<A, B>(
 
 // MARK: - Retry on Deferred
 public func retry<A, B>(
-	_ f: @escaping (A) -> Deferred<Result<B, Error>>, retries: Int
+	_ f: @escaping (A) -> Deferred<Result<B, Error>>,
+	retries: Int
 ) -> (A) -> Deferred<Result<B, Error>> {
 	retry(f)(retries)
 }

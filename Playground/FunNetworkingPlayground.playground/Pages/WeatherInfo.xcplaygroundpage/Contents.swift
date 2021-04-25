@@ -15,6 +15,7 @@ enum Woeid: Int {
 
 struct WeatherInformation: Decodable {
 	let title: String, consolidatedWeather: [Condition]
+
 	struct Condition: Decodable {
 		let weatherStateName: String, minTemp: Double, maxTemp: Double
 	}
