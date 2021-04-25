@@ -45,7 +45,14 @@ func fetchIpNumberFrom(host: Result<Host, Error>) -> IO<Result<IpInfo, Error>> {
     }
 }
 
+// Syntax alternative 1
 let ipInfoFetcher = fetchMyIpNumber() >>- fetchIpNumberFrom
 dump(ipInfoFetcher.unsafeRun())
+
+// Syntax alternative 2
+/* fetchMyIpNumber()
+    .flatMap(fetchIpNumberFrom)
+    .unsafeRun()
+*/
 
 //: [Next](@next)
