@@ -83,6 +83,13 @@ public func retry<A, B>(
 
 // MARK: - IO
 public func retry<A, B>(
+    _ f: @escaping (A) -> IO<Result<B, Error>>,
+    retries: Int
+) -> (A) -> IO<Result<B, Error>> {
+    retry(f)(retries)
+}
+
+public func retry<A, B>(
 	_ f: @escaping (A) -> IO<Result<B, Error>>
 ) -> (Int) -> (A) -> IO<Result<B, Error>> {
 
