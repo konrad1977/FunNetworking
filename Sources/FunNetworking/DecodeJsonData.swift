@@ -6,8 +6,9 @@
 //
 import Foundation
 
-public func decodeData<T: Decodable>(
+public func decodeJsonData<T: Decodable>(
     result: Result<Data, Error>
 ) -> Result<T, Error> {
-    Result(catching: { try JSONDecoder().decode(T.self, from:result.get()) } )
+	unThrow(try JSONDecoder().decode(T.self, from:result.get()))
 }
+

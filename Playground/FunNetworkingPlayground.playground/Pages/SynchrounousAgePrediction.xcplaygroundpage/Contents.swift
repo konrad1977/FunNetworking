@@ -1,8 +1,8 @@
 //: [Previous](@previous)
 
 import Foundation
-import FunNetworking
 import Funswift
+import FunNetworking
 import PlaygroundSupport
 
 PlaygroundPage.current.needsIndefiniteExecution = true
@@ -11,30 +11,25 @@ struct AgeGuess: Decodable {
 	let name: String, age: Int, count: Int
 }
 
-let requestWithCachePolicy = flip(curry(URLRequest.init(url:cachePolicy:timeoutInterval:)))
-let urlRequesstWithTimeout = flip(requestWithCachePolicy(.returnCacheDataElseLoad))
-
-func logStep<T: Any>(_ value: T) -> T { dump(value); return value }
-
 func endpoint(from name: String) -> String { "https://api.agify.io/?name=\(name)" }
+enum RequestError: Error { case invalidUrl }
 
-func ageGuess(from name: String) -> IO<Result<AgeGuess, Error>> {
-	endpoint(from: name)
-		|> URL.init(string:)
-		>=> urlRequesstWithTimeout(30)
-		|> syncRequest
-		<&> decodeData
+func createRequest(from name: String) -> IO<Result<AgeGuess, Error>> {
+
+	guard let url = URL(string: endpoint(from: name))
+	else { return IO { .failure(RequestError.invalidUrl) } }
+
+	return syncRequest(URLRequest(url: url))
+		.map(decodeJsonData)
 }
 
 zip(
-	ageGuess(from: "Anton"),
-	ageGuess(from: "Jane"),
-	ageGuess(from: "John")
+	createRequest(from: "Mikael"),
+	createRequest(from: "Mikael")
 )
 .map(zip)
-	.unsafeRun()
-	.onSuccess { dump($0) }
-	.onFailure { print($0) }
+.unsafeRun()
+.onSuccess { dump($0) }
+.onFailure { dump($0) }
 
 //: [Next](@next)
-

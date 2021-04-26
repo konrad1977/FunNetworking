@@ -47,7 +47,7 @@ func weatherInfo(for id: Woeid) -> Deferred<Result<WeatherInformation, Error>> {
 		|> URL.init(string:) 				|> logStep
 		>=> urlRequesstWithTimeout(30) 		|> logStep
 		|> retry(asyncRequest)(3)			|> logStep
-		<&> decodeData
+		<&> decodeJsonData
 }
 
 zip(

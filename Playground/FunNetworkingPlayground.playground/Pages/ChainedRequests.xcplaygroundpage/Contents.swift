@@ -17,13 +17,12 @@ struct IpInfo: Decodable {
     let ip: String, city: String, region: String, country: String, loc: String, postal: String
 }
 
-
 func fetchMyIpNumber() -> IO<Result<Host, Error>> {
     getIpNumberBase
         |> URL.init(string:)
         >=> urlRequesstWithTimeout(30)
         |> syncRequest 
-        <&> decodeData |> logStep
+        <&> decodeJsonData |> logStep
 }
 
 func fetchExtendedInformationFrom(host: Result<Host, Error>) -> IO<Result<IpInfo, Error>> {
@@ -33,7 +32,7 @@ func fetchExtendedInformationFrom(host: Result<Host, Error>) -> IO<Result<IpInfo
             |> URL.init(string:)
             >=> urlRequesstWithTimeout(30)
             |> retry(syncRequest, retries: 3)
-            <&> decodeData
+            <&> decodeJsonData
     case let .failure(error):
         return IO { .failure(error) }
     }
