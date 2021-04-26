@@ -32,7 +32,7 @@ func fetchMyIpNumber() -> IO<Result<Host, Error>> {
         <&> decodeData
 }
 
-func fetchIpNumberFrom(host: Result<Host, Error>) -> IO<Result<IpInfo, Error>> {
+func fetchExtendedInformationFrom(host: Result<Host, Error>) -> IO<Result<IpInfo, Error>> {
     switch host {
     case let .success(host):
         return getIpInfoUrl(host)
@@ -46,12 +46,12 @@ func fetchIpNumberFrom(host: Result<Host, Error>) -> IO<Result<IpInfo, Error>> {
 }
 
 // Syntax alternative 1
-let ipInfoFetcher = fetchMyIpNumber() >>- fetchIpNumberFrom
+let ipInfoFetcher = fetchMyIpNumber() >>- fetchExtendedInformationFrom
 dump(ipInfoFetcher.unsafeRun())
 
 // Syntax alternative 2
 /* fetchMyIpNumber()
-    .flatMap(fetchIpNumberFrom)
+    .flatMap(fetchExtendedInformationFrom)
     .unsafeRun()
 */
 
