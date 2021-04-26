@@ -11,12 +11,6 @@ struct AgeGuess: Decodable {
 	let name: String, age: Int, count: Int
 }
 
-func decodeAgeData(
-	result: Result<Data, Error>
-) -> Result<AgeGuess, Error> {
-	Result(catching: { try JSONDecoder().decode(AgeGuess.self, from:result.get()) } )
-}
-
 let requestWithCachePolicy = flip(curry(URLRequest.init(url:cachePolicy:timeoutInterval:)))
 let urlRequesstWithTimeout = flip(requestWithCachePolicy(.returnCacheDataElseLoad))
 
@@ -29,11 +23,11 @@ func ageGuess(from name: String) -> IO<Result<AgeGuess, Error>> {
 		|> URL.init(string:)
 		>=> urlRequesstWithTimeout(30)
 		|> syncRequest
-		<&> decodeAgeData
+		<&> decodeData
 }
 
 zip(
-	ageGuess(from: "Mikael"),
+	ageGuess(from: "Anton"),
 	ageGuess(from: "Jane"),
 	ageGuess(from: "John")
 )
@@ -43,3 +37,4 @@ zip(
 	.onFailure { print($0) }
 
 //: [Next](@next)
+

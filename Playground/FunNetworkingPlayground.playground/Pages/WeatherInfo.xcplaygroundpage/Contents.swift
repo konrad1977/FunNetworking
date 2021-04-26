@@ -30,16 +30,6 @@ let WeatherJsonDecoder: JSONDecoder = {
 	return jsonDecoder
 }()
 
-func decodeWeatherData(
-	result: Result<Data, Error>
-) -> Result<WeatherInformation, Error> {
-	Result(
-		catching: {
-			try WeatherJsonDecoder.decode(WeatherInformation.self, from:result.get())
-		}
-	)
-}
-
 let networkPathForId: (Int) -> (String) -> String = {
 	id in { base in base + "location/\(id)" }
 }
@@ -57,7 +47,7 @@ func weatherInfo(for id: Woeid) -> Deferred<Result<WeatherInformation, Error>> {
 		|> URL.init(string:) 				|> logStep
 		>=> urlRequesstWithTimeout(30) 		|> logStep
 		|> retry(asyncRequest)(3)			|> logStep
-		<&> decodeWeatherData 
+		<&> decodeData
 }
 
 zip(
