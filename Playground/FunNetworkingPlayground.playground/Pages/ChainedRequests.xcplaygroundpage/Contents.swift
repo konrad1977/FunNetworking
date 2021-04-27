@@ -17,7 +17,9 @@ struct IpInfo: Decodable {
     let ip: String, city: String, region: String, country: String, loc: String, postal: String
 }
 
-func fetchMyIpNumber() -> IO<Result<Host, Error>> {
+extension String: Error {}
+
+func fetchMyIpNumber() -> IO<Either<Error, Host>> {
     getIpNumberBase
         |> URL.init(string:)
         >=> urlRequesstWithTimeout(30)
@@ -25,16 +27,16 @@ func fetchMyIpNumber() -> IO<Result<Host, Error>> {
         <&> decodeJsonData |> logStep
 }
 
-func fetchExtendedInformationFrom(host: Result<Host, Error>) -> IO<Result<IpInfo, Error>> {
+func fetchExtendedInformationFrom(host: Either<Error, Host>) -> IO<Either<Error, IpInfo>> {
     switch host {
-    case let .success(host):
+    case let .right(host):
         return getIpInfoUrl(host)
             |> URL.init(string:)
             >=> urlRequesstWithTimeout(30)
             |> retry(syncRequest, retries: 3)
             <&> decodeJsonData
-    case let .failure(error):
-        return IO { .failure(error) }
+    case let .left(error):
+        return IO { .left(error) }
     }
 }
 

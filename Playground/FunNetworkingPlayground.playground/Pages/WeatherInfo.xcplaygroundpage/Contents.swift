@@ -21,7 +21,7 @@ struct WeatherInformation: Decodable {
 	}
 }
 
-let WeatherJsonDecoder: JSONDecoder = {
+let weatherDecoder: JSONDecoder = {
 	let jsonDecoder = JSONDecoder()
 	let formatter = DateFormatter()
 	formatter.dateFormat = "yyyy-MM-dd"
@@ -47,7 +47,7 @@ func weatherInfo(for id: Woeid) -> Deferred<Result<WeatherInformation, Error>> {
 		|> URL.init(string:) 				|> logStep
 		>=> urlRequesstWithTimeout(30) 		|> logStep
 		|> retry(asyncRequest)(3)			|> logStep
-		<&> decodeJsonData
+		<&> decodeJsonData(with: weatherDecoder)
 }
 
 zip(
