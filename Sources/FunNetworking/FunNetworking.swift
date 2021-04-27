@@ -21,23 +21,45 @@ public func asyncRequest(
 	_ request: URLRequest?
 ) -> Deferred<Result<Data, Error>> {
 
+	let result: Deferred<Either<Error, Data>> = asyncRequest(request)
+	return result.map { either -> Result<Data, Error> in
+		switch either {
+		case let .left(error):
+			return .failure(error)
+		case let .right(data):
+			return .success(data)
+		}
+	}
+}
+
+// MARK: - asyncRequest
+public func syncRequest(
+	_ request: URLRequest?
+) -> IO<Either<Error, Data>> {
+	IO(deferred: asyncRequest(request))
+}
+
+public func asyncRequest(
+	_ request: URLRequest?
+) -> Deferred<Either<Error, Data>> {
+
 	return Deferred { callback in
 
 		guard let request = request
-		else { callback(.failure(NetworkRequestError.invalidRequest)); return }
+		else { callback(.left(NetworkRequestError.invalidRequest)); return }
 
 		URLSession.shared.dataTask(with: request) { data, response, error in
 
 			if let data = data, let response = response as? HTTPURLResponse {
 				switch response.statusCode {
 				case 200..<300:
-					callback(.success(data))
+					callback(.right(data))
 				default:
-					callback(.failure(NetworkRequestError.invalidResponse(response.statusCode)))
+					callback(.left(NetworkRequestError.invalidResponse(response.statusCode)))
 					break
 				}
 			} else if let error = error {
-				callback(.failure(NetworkRequestError.failed(error)))
+				callback(.left(NetworkRequestError.failed(error)))
 			}
 		}.resume()
 	}
