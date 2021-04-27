@@ -7,14 +7,10 @@ import PlaygroundSupport
 
 PlaygroundPage.current.needsIndefiniteExecution = true
 
-struct AgeGuess: Decodable {
-	let name: String, age: Int, count: Int
-}
-
 let requestWithCachePolicy = flip(curry(URLRequest.init(url:cachePolicy:timeoutInterval:)))
 let urlRequesstWithTimeout = flip(requestWithCachePolicy(.returnCacheDataElseLoad))
 
-func logStep<T: Any>(_ value: T) -> T { dump(value); return value }
+struct AgeGuess: Decodable { let name: String, age: Int, count: Int }
 
 func endpoint(from name: String) -> String { "https://api.agify.io/?name=\(name)" }
 

@@ -4,11 +4,8 @@ import Foundation
 import FunNetworking
 import Funswift
 
-func logStep<T: Any>(_ value: T) -> T { dump(value); return value }
-
 let requestWithCachePolicy = flip(curry(URLRequest.init(url:cachePolicy:timeoutInterval:)))
 let urlRequesstWithTimeout = flip(requestWithCachePolicy(.returnCacheDataElseLoad))
-struct Host: Decodable { let ip: String }
 
 let getIpNumberBase = "https://api.ipify.org/?format=json"
 let getIpInfoUrl: (Host) -> String = { host in "https://ipinfo.io/\(host.ip)/geo" }
@@ -17,14 +14,16 @@ struct IpInfo: Decodable {
     let ip: String, city: String, region: String, country: String, loc: String, postal: String
 }
 
+struct Host: Decodable { let ip: String }
+
 extension String: Error {}
 
-func fetchMyIpNumber() -> IO<Either<Error, Host>> {
-    getIpNumberBase
-        |> URL.init(string:)
-        >=> urlRequesstWithTimeout(30)
-        |> syncRequest 
-        <&> decodeJsonData |> logStep
+let fetchIpNumber: () -> IO<Either<Error, Host>> = {
+	getIpNumberBase
+		|> URL.init(string:)
+		>=> urlRequesstWithTimeout(30)
+		|> syncRequest
+		<&> decodeJsonData |> logger
 }
 
 func fetchExtendedInformationFrom(host: Either<Error, Host>) -> IO<Either<Error, IpInfo>> {
@@ -42,7 +41,7 @@ func fetchExtendedInformationFrom(host: Either<Error, Host>) -> IO<Either<Error,
 
 
 // Syntax alternative 1
-let ipInfoFetcher = fetchMyIpNumber() >>- fetchExtendedInformationFrom
+let ipInfoFetcher = fetchIpNumber() >>- fetchExtendedInformationFrom
 dump(ipInfoFetcher.unsafeRun())
 
 // Syntax alternative 2

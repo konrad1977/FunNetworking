@@ -7,6 +7,9 @@ import PlaygroundSupport
 
 PlaygroundPage.current.needsIndefiniteExecution = true
 
+let requestWithCachePolicy = flip(curry(URLRequest.init(url:cachePolicy:timeoutInterval:)))
+let urlRequesstWithTimeout = flip(requestWithCachePolicy(.returnCacheDataElseLoad))
+
 enum Woeid: Int {
 	case copenhagen = 554890
 	case london = 44418
@@ -34,19 +37,14 @@ let networkPathForId: (Int) -> (String) -> String = {
 	id in { base in base + "location/\(id)" }
 }
 
-func logStep<T: Any>(_ value: T) -> T { dump(value); return value }
-
-let requestWithCachePolicy = flip(curry(URLRequest.init(url:cachePolicy:timeoutInterval:)))
-let urlRequesstWithTimeout = flip(requestWithCachePolicy(.returnCacheDataElseLoad))
-
 let baseUrl = "https://www.metaweather.com/api/"
 
 func weatherInfo(for id: Woeid) -> Deferred<Result<WeatherInformation, Error>> {
 	baseUrl
-		|> networkPathForId(id.rawValue) 	|> logStep
-		|> URL.init(string:) 				|> logStep
-		>=> urlRequesstWithTimeout(30) 		|> logStep
-		|> retry(asyncRequest)(3)			|> logStep
+		|> networkPathForId(id.rawValue) 	|> logger
+		|> URL.init(string:) 				|> logger
+		>=> urlRequesstWithTimeout(30) 		|> logger
+		|> retry(asyncRequest)(3)			|> logger
 		<&> decodeJsonData(with: weatherDecoder)
 }
 

@@ -11,12 +11,11 @@ struct AgeGuess: Decodable {
 	let name: String, age: Int, count: Int
 }
 
-func endpoint(from name: String) -> String { "https://api.agify.io/?name=\(name)" }
+let endPointWithName: (String) -> String = { name in "https://api.agify.io/?name=\(name)" }
 enum RequestError: Error { case invalidUrl }
 
 func createRequest(from name: String) -> IO<Result<AgeGuess, Error>> {
-
-	guard let url = URL(string: endpoint(from: name))
+	guard let url = URL(string: endPointWithName(name))
 	else { return IO { .failure(RequestError.invalidUrl) } }
 
 	return syncRequest(URLRequest(url: url))
@@ -25,7 +24,7 @@ func createRequest(from name: String) -> IO<Result<AgeGuess, Error>> {
 
 zip(
 	createRequest(from: "Mikael"),
-	createRequest(from: "Mikael")
+	createRequest(from: "Jane")
 )
 .map(zip)
 .unsafeRun()
