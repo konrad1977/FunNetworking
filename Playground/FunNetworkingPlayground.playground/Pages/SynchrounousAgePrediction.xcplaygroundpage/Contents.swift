@@ -15,6 +15,7 @@ let endPointWithName: (String) -> String = { name in "https://api.agify.io/?name
 enum RequestError: Error { case invalidUrl }
 
 func createRequest(from name: String) -> IO<Result<AgeGuess, Error>> {
+
 	guard let url = URL(string: endPointWithName(name))
 	else { return IO { .failure(RequestError.invalidUrl) } }
 
@@ -30,5 +31,6 @@ zip(
 .unsafeRun()
 .onSuccess { dump($0) }
 .onFailure { dump($0) }
+
 
 //: [Next](@next)
