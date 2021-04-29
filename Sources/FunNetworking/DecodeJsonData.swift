@@ -7,16 +7,17 @@
 import Foundation
 import Funswift
 
-enum DecodingError: Error {
-    case invalidData
-}
-
 // Mark: Private helpers
 private func decodeJsonDataResult<T: Decodable>(
 	result: Result<Data, Error>,
 	decoder: JSONDecoder
 ) -> Result<T, Error> {
-	unThrow(try decoder.decode(T.self, from:result.get()))
+	switch result {
+	case let .failure(error):
+		return Result<T, Error>.failure(error)
+	case let .success(data):
+		return unThrow(try decoder.decode(T.self, from: data))
+	}
 }
 
 public func decodeJsonDataEither<T: Decodable>(
@@ -24,10 +25,12 @@ public func decodeJsonDataEither<T: Decodable>(
 	decoder: JSONDecoder
 ) -> Either<Error, T> {
 
-	guard let right = result.right()
-    else { return Either<Error, T>.left(DecodingError.invalidData) }
-
-	return unThrow(try decoder.decode(T.self, from: right))
+	switch result {
+	case let .left(error):
+		return Either<Error, T>.left(error)
+	case let .right(data):
+		return unThrow(try decoder.decode(T.self, from: data))
+	}
 }
 
 // MARK: - Curried version to have a specified decoder
