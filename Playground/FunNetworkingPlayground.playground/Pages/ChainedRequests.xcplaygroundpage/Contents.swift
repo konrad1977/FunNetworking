@@ -19,7 +19,7 @@ let fetchIpNumber: IO<Either<Error, Host>> = {
 	getIpNumberBase
 		|> URL.init(string:)
 		>=> requestWithTimeout(30)
-		|> syncRequest
+		|> requestSyncE
 		<&> decodeJsonData
 }()
 
@@ -29,7 +29,7 @@ let fetchHostInfo: (Either<Error, Host>) -> IO<Either<Error, IpInfo>> = { host i
 		return getIpInfoUrl(host)
 			|> URL.init(string:)
 			>=> requestWithTimeout(30)
-			|> retry(syncRequest, retries: 3)
+			|> retry(requestSyncE, retries: 3)
 			<&> decodeJsonData
 	case let .left(error):
 		return IO { .left(error) }

@@ -10,36 +10,26 @@ public enum NetworkRequestError: Error {
 	case failed(Error)
 }
 
-public func syncRequest(
+public func requestSyncR(
 	_ request: URLRequest?
 ) -> IO<Result<Data, Error>> {
-	IO(deferred: asyncRequest(request))
+	IO(deferred: requestAsyncR(request))
 }
 
 // MARK: - asyncRequest
-public func asyncRequest(
+public func requestAsyncR(
 	_ request: URLRequest?
 ) -> Deferred<Result<Data, Error>> {
-
-	let result: Deferred<Either<Error, Data>> = asyncRequest(request)
-	return result.map { either -> Result<Data, Error> in
-		switch either {
-		case let .left(error):
-			return .failure(error)
-		case let .right(data):
-			return .success(data)
-		}
-	}
+    requestAsyncE(request).map(Result.init(either:))
 }
 
-// MARK: - asyncRequest
-public func syncRequest(
+public func requestSyncE(
 	_ request: URLRequest?
 ) -> IO<Either<Error, Data>> {
-	IO(deferred: asyncRequest(request))
+	IO(deferred: requestAsyncE(request))
 }
 
-public func asyncRequest(
+public func requestAsyncE(
 	_ request: URLRequest?
 ) -> Deferred<Either<Error, Data>> {
 
@@ -64,3 +54,4 @@ public func asyncRequest(
 		}.resume()
 	}
 }
+
