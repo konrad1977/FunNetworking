@@ -25,7 +25,7 @@ public func decodeJsonDataEither<T: Decodable>(
 ) -> Either<Error, T> {
 
 	guard let right = result.right()
-	else { return Either<Error, T>.left(DecodingError.invalidData) }
+    else { return Either<Error, T>.left(DecodingError.invalidData) }
 
 	return unThrow(try decoder.decode(T.self, from: right))
 }

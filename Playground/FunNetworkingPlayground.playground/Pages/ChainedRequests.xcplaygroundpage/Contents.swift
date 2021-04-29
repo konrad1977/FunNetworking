@@ -20,7 +20,7 @@ let fetchIpNumber: IO<Either<Error, Host>> = {
 		|> URL.init(string:)
 		>=> requestWithTimeout(30)
 		|> syncRequest
-		<&> decodeJsonData |> logger
+		<&> decodeJsonData
 }()
 
 let fetchHostInfo: (Either<Error, Host>) -> IO<Either<Error, IpInfo>> = { host in
