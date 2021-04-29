@@ -18,7 +18,7 @@ func ageGuess(from name: String) -> IO<Result<AgeGuess, Error>> {
 	endpoint(from: name)
 		|> URL.init(string:)
 		>=> urlRequesstWithTimeout(30)
-		|> syncRequest
+		|> requestSyncR
 		<&> decodeJsonData
 }
 

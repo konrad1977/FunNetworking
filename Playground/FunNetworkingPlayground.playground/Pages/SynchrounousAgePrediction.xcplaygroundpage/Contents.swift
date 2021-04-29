@@ -19,7 +19,7 @@ func createRequest(from name: String) -> IO<Result<AgeGuess, Error>> {
 	guard let url = URL(string: endPointWithName(name))
 	else { return IO { .failure(RequestError.invalidUrl) } }
 
-	return syncRequest(URLRequest(url: url))
+	return requestSyncR(URLRequest(url: url))
 		.map(decodeJsonData)
 }
 

@@ -44,7 +44,7 @@ func weatherInfo(for id: Woeid) -> Deferred<Result<WeatherInformation, Error>> {
 		|> networkPathForId(id.rawValue) 	|> logger
 		|> URL.init(string:) 				|> logger
 		>=> urlRequesstWithTimeout(30) 		|> logger
-		|> retry(asyncRequest)(3)			|> logger
+		|> retry(requestAsyncR)(3)			|> logger
 		<&> decodeJsonData(with: weatherDecoder)
 }
 
