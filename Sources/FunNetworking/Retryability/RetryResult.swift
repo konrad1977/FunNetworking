@@ -33,8 +33,8 @@ public func retry<A, B>(
 			return result
 		case .failure:
 			if currentRun > 0 {
-				Thread.sleep(forTimeInterval: debounce.value)
-				return retry(value: value, result: f(value), currentRun: currentRun - 1, debounce: debounce)
+                Thread.sleep(forTimeInterval: debounce.value)
+                return retry(value: value, result: f(value), currentRun: currentRun - 1, debounce: debounce.run())
 			}
 			return result
 		}

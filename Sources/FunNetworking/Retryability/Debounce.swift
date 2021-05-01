@@ -13,7 +13,8 @@ public enum Debounce {
 }
 
 extension Debounce {
-	var value: TimeInterval {
+
+    public var value: TimeInterval {
 		switch self {
 		case let .linear(value):
 			return value
@@ -21,4 +22,15 @@ extension Debounce {
 			return value
 		}
 	}
+
+    public func run() -> Self {
+        switch self {
+        case .exponential,
+             .exponential(value):
+            return .exponential(value * 2)
+        case .linear,
+             .linear(value):
+            return .linear(value)
+        }
+    }
 }
