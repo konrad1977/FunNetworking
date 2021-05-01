@@ -10,33 +10,36 @@ final class RetryTests: XCTestCase {
 
 	func testRetryForFailingResultLinear() {
 
-		let resultFunc = retry(failingResultFunction, retries: 3, debounce: .linear(0.5))
 
 		let expectation = XCTestExpectation(description: "WaitingDebounce")
 
-		switch resultFunc(10) {
-		case .failure:
-			expectation.fulfill()
-		case .success:
-			XCTAssertTrue(true)
-		}
+        DispatchQueue.global().async {
+            let resultFunc = retry(self.failingResultFunction, retries: 3, debounce: .linear(0.5))
 
+            switch resultFunc(10) {
+            case .failure:
+                expectation.fulfill()
+            case .success:
+                XCTAssertTrue(true)
+            }
+        }
 		wait(for: [expectation], timeout: 1.550)
 	}
 
 	func testRetryForFailingResultExponential() {
 
-		let resultFunc = retry(failingResultFunction, retries: 3, debounce: .exponential(0.5))
-
 		let expectation = XCTestExpectation(description: "WaitingDebounce")
 
-		switch resultFunc(10) {
-		case .failure:
-			expectation.fulfill()
-		case .success:
-			XCTAssertTrue(true)
-		}
+        DispatchQueue.global().async {
+            let resultFunc = retry(self.failingResultFunction, retries: 3, debounce: .exponential(0.5))
 
-		wait(for: [expectation], timeout: 1.550)
+            switch resultFunc(10) {
+            case .failure:
+                expectation.fulfill()
+            case .success:
+                XCTAssertTrue(true)
+            }
+        }
+        wait(for: [expectation], timeout: 4)
 	}
 }
