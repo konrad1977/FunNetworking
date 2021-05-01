@@ -9,34 +9,44 @@ import Foundation
 import Funswift
 
 // MARK: - Retry on Result
-public func retry<A, B, E: Error>(
-    _ f: @escaping (A) -> Result<B, E>,
+public func retry<A, B>(
+    _ f: @escaping (A) -> Result<B, Error>,
     retries: Int,
-    coolDown: TimeInterval
-) -> (A) -> Result<B, E> {
-	retry(f)(coolDown)(retries)
+    debounce: Debounce
+) -> (A) -> Result<B, Error> {
+	retry(f)(debounce)(retries)
 }
 
-public func retry<A, B, E: Error>(
-	_ f: @escaping (A) -> Result<B, E>
-) -> (TimeInterval) -> (Int) -> (A) -> Result<B, E> {
+public func retry<A, B>(
+	_ f: @escaping (A) -> Result<B, Error>
+) -> (Debounce) -> (Int) -> (A) -> Result<B, Error> {
 
-    func retry(value: A, result: Result<B, E>, currentRun: Int, cooldown: TimeInterval) -> Result<B, E> {
+    func retry(
+		value: A,
+		result: Result<B, Error>,
+		currentRun: Int,
+		debounce: Debounce
+	) -> Result<B, Error> {
+
 		switch result {
 		case .success:
 			return result
 		case let .failure(error):
-            if currentRun > 0 {
-                if cooldown > 0 {
-                    Thread.sleep(forTimeInterval: cooldown)
-                }
-                return retry(value: value, result: f(value), currentRun: currentRun - 1, cooldown: cooldown)
-            } else {
-                return .failure(error)
-            }
+			if currentRun < 0 {
+				return .failure(error)
+			} else if debounce.value > 0 {
+				Thread.sleep(forTimeInterval: debounce.value)
+			}
+			return retry(value: value, result: f(value), currentRun: currentRun - 1, debounce: debounce)
 		}
 	}
-    return { cooldown in { retries in { value in retry(value: value, result: f(value), currentRun: retries - 1, cooldown: cooldown) } } }
+    return {
+		debounce in {
+			retries in { value in
+				retry(value: value, result: f(value), currentRun: retries - 1, debounce: debounce)
+			}
+		}
+	}
 }
 
 

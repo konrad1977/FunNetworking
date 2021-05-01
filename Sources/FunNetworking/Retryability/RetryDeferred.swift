@@ -12,18 +12,24 @@ import Funswift
 // MARK: - Retry on Deferred<Either<E, B>>
 public func retry<A, B, E>(
 	_ f: @escaping (A) -> Deferred<Either<E, B>>,
-	retries: Int
+	retries: Int,
+	debounce: Debounce
 ) -> (A) -> Deferred<Either<E, B>> {
-	retry(f)(retries)
+	retry(f)(debounce)(retries)
 }
 
 public func retry<A, B, E>(
 	_ f: @escaping (A) -> Deferred<Either<E, B>>
-) -> (Int) -> (A) -> Deferred<Either<E, B>> {
+) -> (Debounce) -> (Int) -> (A) -> Deferred<Either<E, B>> {
 
 	let dispatchGroup = DispatchGroup()
 
-	func retry(value: A, result: Deferred<Either<E, B>>, currentRun: Int) -> Deferred<Either<E, B>> {
+	func retry(
+		value: A,
+		result: Deferred<Either<E, B>>,
+		currentRun: Int,
+		debounce: Debounce
+	) -> Deferred<Either<E, B>> {
 
 		dispatchGroup.enter()
 
@@ -41,29 +47,43 @@ public func retry<A, B, E>(
 		dispatchGroup.wait()
 
 		if success == false && currentRun > 0 {
-			return retry(value: value, result: f(value), currentRun: currentRun - 1)
+			Thread.sleep(forTimeInterval: debounce.value)
+			return retry(value: value, result: f(value), currentRun: currentRun - 1, debounce: debounce)
 		} else {
 			return result
 		}
 	}
-	return { retries in { value in retry(value: value, result: f(value), currentRun: retries - 1) } }
+	
+	return {
+		debounce in {
+			retries in { value in
+				retry(value: value, result: f(value), currentRun: retries - 1, debounce: debounce)
+			}
+		}
+	}
 }
 
 // MARK: - Retry on Deferred<Result>
 public func retry<A, B>(
 	_ f: @escaping (A) -> Deferred<Result<B, Error>>,
-	retries: Int
+	retries: Int,
+	debounce: Debounce
 ) -> (A) -> Deferred<Result<B, Error>> {
-	retry(f)(retries)
+	retry(f)(debounce)(retries)
 }
 
 public func retry<A, B>(
 	_ f: @escaping (A) -> Deferred<Result<B, Error>>
-) -> (Int) -> (A) -> Deferred<Result<B, Error>> {
+) -> (Debounce) -> (Int) -> (A) -> Deferred<Result<B, Error>> {
 
 	let dispatchGroup = DispatchGroup()
 
-	func retry(value: A, result: Deferred<Result<B, Error>>, currentRun: Int) -> Deferred<Result<B, Error>> {
+	func retry(
+		value: A,
+		result: Deferred<Result<B, Error>>,
+		currentRun: Int,
+		debounce: Debounce
+	) -> Deferred<Result<B, Error>> {
 
 		dispatchGroup.enter()
 
@@ -77,16 +97,22 @@ public func retry<A, B>(
 			}
 			dispatchGroup.leave()
 		}
-
 		dispatchGroup.wait()
 
 		if success == false && currentRun > 0 {
-			print("error - retrying currentRun: \(currentRun + 1)")
-			return retry(value: value, result: f(value), currentRun: currentRun - 1)
+			Thread.sleep(forTimeInterval: debounce.value)
+			return retry(value: value, result: f(value), currentRun: currentRun - 1, debounce: debounce)
 		} else {
 			return result
 		}
 	}
-	return { retries in { value in retry(value: value, result: f(value), currentRun: retries - 1) } }
+
+	return {
+		debounce in {
+			retries in { value in
+				retry(value: value, result: f(value), currentRun: retries - 1, debounce: debounce)
+			}
+		}
+	}
 }
 
