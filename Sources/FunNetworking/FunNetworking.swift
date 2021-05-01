@@ -33,25 +33,32 @@ public func requestAsyncE(
 	_ request: URLRequest?
 ) -> Deferred<Either<Error, Data>> {
 
-	return Deferred { callback in
+    var urlTask: URLSessionDataTask?
 
-		guard let request = request
-		else { callback(.left(NetworkRequestError.invalidRequest)); return }
+    return Deferred { callback in
 
-		URLSession.shared.dataTask(with: request) { data, response, error in
+        guard let request = request
+        else { callback(.left(NetworkRequestError.invalidRequest)); return }
 
-			if let data = data, let response = response as? HTTPURLResponse {
-				switch response.statusCode {
-				case 200..<300:
-					callback(.right(data))
-				default:
-					callback(.left(NetworkRequestError.invalidResponse(response.statusCode)))
-					break
-				}
-			} else if let error = error {
-				callback(.left(NetworkRequestError.failed(error)))
-			}
-		}.resume()
-	}
+        urlTask = URLSession.shared.dataTask(with: request) { data, response, error in
+
+            if let data = data, let response = response as? HTTPURLResponse {
+                switch response.statusCode {
+                case 200..<300:
+                    callback(.right(data))
+                default:
+                    callback(.left(NetworkRequestError.invalidResponse(response.statusCode)))
+                    break
+                }
+            } else if let error = error {
+                callback(.left(NetworkRequestError.failed(error)))
+            }
+        }
+        urlTask?.resume()
+
+    } _: {
+        urlTask?.cancel()
+        print("Cancel")
+    }
 }
 
