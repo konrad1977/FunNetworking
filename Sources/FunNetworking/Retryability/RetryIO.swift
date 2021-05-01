@@ -32,18 +32,17 @@ public func retry<A, B>(
 		case .success:
 			return result
 		case .failure:
-			if currentRun < 0 {
-				return result
-			} else if debounce.value > 0 {
+			if currentRun > 0 {
 				Thread.sleep(forTimeInterval: debounce.value)
+				return retry(value: value, result: f(value), currentRun: currentRun - 1, debounce: debounce)
 			}
-			return retry(value: value, result: f(value), currentRun: currentRun - 1, debounce: debounce)
+			return result
 		}
 	}
 	return {
 		debounce in {
 			retries in { value in
-				retry(value: value, result: f(value), currentRun: retries - 1, debounce: debounce)
+				retry(value: value, result: f(value), currentRun: retries, debounce: debounce)
 			}
 		}
 	}
@@ -73,18 +72,17 @@ public func retry<A, B, E>(
 		case .right:
 			return result
 		case .left:
-			if currentRun < 0 {
-				return result
-			} else if debounce.value > 0 {
+			if currentRun > 0 {
 				Thread.sleep(forTimeInterval: debounce.value)
+				return retry(value: value, result: f(value), currentRun: currentRun - 1, debounce: debounce)
 			}
-			return retry(value: value, result: f(value), currentRun: currentRun - 1, debounce: debounce)
+			return result
 		}
 	}
 	return {
 		debounce in {
 			retries in { value in
-				retry(value: value, result: f(value), currentRun: retries - 1, debounce: debounce)
+				retry(value: value, result: f(value), currentRun: retries, debounce: debounce)
 			}
 		}
 	}

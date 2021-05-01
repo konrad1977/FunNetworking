@@ -49,15 +49,14 @@ public func retry<A, B, E>(
 		if success == false && currentRun > 0 {
 			Thread.sleep(forTimeInterval: debounce.value)
 			return retry(value: value, result: f(value), currentRun: currentRun - 1, debounce: debounce)
-		} else {
-			return result
 		}
+		return result
 	}
 	
 	return {
 		debounce in {
 			retries in { value in
-				retry(value: value, result: f(value), currentRun: retries - 1, debounce: debounce)
+				retry(value: value, result: f(value), currentRun: retries, debounce: debounce)
 			}
 		}
 	}
@@ -99,18 +98,17 @@ public func retry<A, B>(
 		}
 		dispatchGroup.wait()
 
-		if success == false && currentRun > 0 {
+		if success == false && currentRun != 0 {
 			Thread.sleep(forTimeInterval: debounce.value)
 			return retry(value: value, result: f(value), currentRun: currentRun - 1, debounce: debounce)
-		} else {
-			return result
 		}
+		return result
 	}
 
 	return {
 		debounce in {
 			retries in { value in
-				retry(value: value, result: f(value), currentRun: retries - 1, debounce: debounce)
+				retry(value: value, result: f(value), currentRun: retries, debounce: debounce)
 			}
 		}
 	}

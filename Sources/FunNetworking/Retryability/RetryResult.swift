@@ -31,19 +31,18 @@ public func retry<A, B>(
 		switch result {
 		case .success:
 			return result
-		case let .failure(error):
-			if currentRun < 0 {
-				return .failure(error)
-			} else if debounce.value > 0 {
+		case .failure:
+			if currentRun > 0 {
 				Thread.sleep(forTimeInterval: debounce.value)
+				return retry(value: value, result: f(value), currentRun: currentRun - 1, debounce: debounce)
 			}
-			return retry(value: value, result: f(value), currentRun: currentRun - 1, debounce: debounce)
+			return result
 		}
 	}
     return {
 		debounce in {
 			retries in { value in
-				retry(value: value, result: f(value), currentRun: retries - 1, debounce: debounce)
+				retry(value: value, result: f(value), currentRun: retries, debounce: debounce)
 			}
 		}
 	}

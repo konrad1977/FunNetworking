@@ -9,24 +9,40 @@ import Foundation
 
 // MARK: - Retry on Optionals
 public func retry<A, B>(
-	_ f: @escaping (A) -> B?, retries: Int
+	_ f: @escaping (A) -> B?,
+	retries: Int,
+	debounce: Debounce
 ) -> (A) -> B? {
-	retry(f)(retries)
+	retry(f)(debounce)(retries)
 }
 
 public func retry<A, B>(
 	_ f: @escaping (A) -> B?
-) -> (Int) -> (A) -> B? {
+) -> (Debounce) -> (Int) -> (A) -> B? {
 
-	func retry(value: A, result: B?, currentRun: Int) -> B? {
+	func retry(
+		value: A,
+		result: B?,
+		currentRun: Int,
+		debounce: Debounce
+	) -> B? {
+		
 		switch result {
 		case .some:
 			return result
 		case .none:
-			return currentRun > 0
-				? retry(value: value, result: f(value), currentRun: currentRun - 1)
-				: .none
+			if currentRun > 0 {
+				Thread.sleep(forTimeInterval: debounce.value)
+				return retry(value: value, result: f(value), currentRun: currentRun - 1, debounce: debounce)
+			}
+			return result
 		}
 	}
-	return { retries in { value in retry(value: value, result: f(value), currentRun: retries - 1) } }
+	return {
+		debounce in {
+			retries in { value in
+				retry(value: value, result: f(value), currentRun: retries, debounce: debounce)
+			}
+		}
+	}
 }
