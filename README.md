@@ -22,6 +22,7 @@ FunNetworking is a lightweight wrapper around several monads found in [Funswift]
 - Zip and run multiple request at once and merge the result into one (if you want to)
   
 - Zipping request can be mixed in with reading from disk or any other operation. It doesnt have to a network request.
+  
   - Async zip can be mixed with Sync operations and vice versa. 
   
 - Chain operation using `>>-` operator or `flatMap`. Need the result from an earlier request to make a new request? Thats easy, just flatMap on the first request and fire up a second request.
@@ -38,4 +39,23 @@ FunNetworking is a lightweight wrapper around several monads found in [Funswift]
   - `Deferred` and `IO` has built in support for `mapT`, which means it can map on the wrapped functors data. 
     - Ex `IO<Result<Int, Error>>` can be `mapT(String.init)` which produces `IO<Result<String, Error>>`
 - DecodeJsonData
+  
   - Built in easy to use jsonDecoding. Supports curried version for injecting specialized JSONDecoder.
+
+## Usage
+
+#### Types of request
+
+```swift
+import FunNetworking
+import Funswift
+
+let request: URLRequest = createRequest(...)
+
+requestSyncE(request)		//IO<Either>
+requestSyncR(request)		//IO<Result>
+
+requestAsyncE(request)	//Deferred<Either>
+requestAsyncR(request)	//Deferred<Result>
+```
+

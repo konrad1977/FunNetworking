@@ -29,7 +29,7 @@ let fetchHostInfo: (Either<Error, Host>) -> IO<Either<Error, IpInfo>> = { host i
 		return getIpInfoUrl(host)
 			|> URL.init(string:)
 			>=> requestWithTimeout(30)
-			|> retry(requestSyncE, retries: 3)
+            |> retry(requestSyncE, retries: 3, debounce: .linear(2))
 			<&> decodeJsonData
 	case let .left(error):
 		return IO { .left(error) }
