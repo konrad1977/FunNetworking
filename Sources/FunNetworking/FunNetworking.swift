@@ -35,7 +35,7 @@ public func requestAsyncE(
 
     var urlTask: URLSessionDataTask?
 
-    return Deferred { callback in
+    var deferred = Deferred<Either<Error, Data>> { callback in
 
         guard let request = request
         else { callback(.left(NetworkRequestError.invalidRequest)); return }
@@ -55,10 +55,11 @@ public func requestAsyncE(
             }
         }
         urlTask?.resume()
-
-    } _: {
-        urlTask?.cancel()
-        print("Cancel")
     }
+
+    deferred.onCancel = {
+        urlTask?.cancel()
+    }
+    return deferred
 }
 

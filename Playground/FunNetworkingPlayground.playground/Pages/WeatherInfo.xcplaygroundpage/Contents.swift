@@ -41,20 +41,21 @@ let baseUrl = "https://www.metaweather.com/api/"
 
 func weatherInfo(for id: Woeid) -> Deferred<Result<WeatherInformation, Error>> {
 	baseUrl
-		|> networkPathForId(id.rawValue) 	|> logger
-		|> URL.init(string:) 				|> logger
-		>=> urlRequesstWithTimeout(30) 		|> logger
-		|> retry(requestAsyncR)(3)			|> logger
+		|> networkPathForId(id.rawValue) 	                        //|> logger
+		|> URL.init(string:) 				                        //|> logger
+		>=> urlRequesstWithTimeout(30) 		                        //|> logger
+        |> retry(requestAsyncR, retries: 3, debounce: .linear(2))   //|> logger
 		<&> decodeJsonData(with: weatherDecoder)
 }
 
 zip(
-	weatherInfo(for: .stockholm),
-	weatherInfo(for: .london),
-	weatherInfo(for: .copenhagen)
-).map(zip)
+    weatherInfo(for: .stockholm),
+    weatherInfo(for: .london),
+    weatherInfo(for: .copenhagen)
+)
+.map(zip)
 .run { result in
-	print(result)
+    dump(result)
 }
 
 
