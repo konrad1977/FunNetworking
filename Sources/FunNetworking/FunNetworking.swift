@@ -32,34 +32,69 @@ public func requestSyncE(
 public func requestAsyncE(
 	_ request: URLRequest?
 ) -> Deferred<Either<Error, Data>> {
-
-    var urlTask: URLSessionDataTask?
-
-    var deferred = Deferred<Either<Error, Data>> { callback in
-
-        guard let request = request
-        else { callback(.left(NetworkRequestError.invalidRequest)); return }
-
-        urlTask = URLSession.shared.dataTask(with: request) { data, response, error in
-
-            if let data = data, let response = response as? HTTPURLResponse {
-                switch response.statusCode {
-                case 200..<300:
-                    callback(.right(data))
-                default:
-                    callback(.left(NetworkRequestError.invalidResponse(response.statusCode)))
-                    break
-                }
-            } else if let error = error {
-                callback(.left(NetworkRequestError.failed(error)))
-            }
-        }
-        urlTask?.resume()
-    }
-
-    deferred.onCancel = {
-        urlTask?.cancel()
-    }
-    return deferred
+	requestRaw(request: request).mapT { (data, _) in data }
 }
 
+public func downloadFile(url: String) -> Deferred<Either<Error, Data>> {
+
+	Deferred { callback in
+
+		guard let url = URL(string: url)
+		else { callback(.left(NetworkRequestError.invalidRequest)); return }
+
+		let request = URLRequest(
+			url: url,
+			cachePolicy: .returnCacheDataElseLoad,
+			timeoutInterval: 15
+		)
+
+		if let data = URLCache.shared.cachedResponse(for: request)?.data {
+			callback(.right(data))
+		} else {
+			requestRaw(request: request).run { result in
+				switch result {
+				case let .left(error):
+					callback(.left(error))
+				case let .right((data, response)):
+					let cachedData = CachedURLResponse(response: response, data: data)
+					URLCache.shared.storeCachedResponse(cachedData, for: request)
+					callback(.right(data))
+				}
+			}
+		}
+	}
+}
+
+// MARK: - Raw
+
+private func requestRaw(request: URLRequest?) -> Deferred<Either<Error, (Data, URLResponse)>> {
+
+	var urlTask: URLSessionDataTask?
+
+	var deferred = Deferred<Either<Error, (Data, URLResponse)>> { callback in
+
+		guard let request = request
+		else { callback(.left(NetworkRequestError.invalidRequest)); return }
+
+		urlTask = URLSession.shared.dataTask(with: request) { data, response, error in
+
+			if let data = data, let response = response as? HTTPURLResponse {
+				switch response.statusCode {
+				case 200..<300:
+					callback(.right((data, response)))
+				default:
+					callback(.left(NetworkRequestError.invalidResponse(response.statusCode)))
+					break
+				}
+			} else if let error = error {
+				callback(.left(NetworkRequestError.failed(error)))
+			}
+		}
+		urlTask?.resume()
+	}
+
+	deferred.onCancel = {
+		urlTask?.cancel()
+	}
+	return deferred
+}
