@@ -3,6 +3,8 @@ import Funswift
 
 public typealias HttpStatusCode = Int
 
+public let requestWithCachePolicy = flip(curry(URLRequest.init(url:cachePolicy:timeoutInterval:)))
+
 // MARK: - NetworkRequestError
 public enum NetworkRequestError: Error {
 	case invalidRequest
@@ -35,39 +37,8 @@ public func requestAsyncE(
 	requestRaw(request: request).mapT { (data, _) in data }
 }
 
-public func downloadFile(url: String) -> Deferred<Either<Error, Data>> {
-
-	Deferred { callback in
-
-		guard let url = URL(string: url)
-		else { callback(.left(NetworkRequestError.invalidRequest)); return }
-
-		let request = URLRequest(
-			url: url,
-			cachePolicy: .returnCacheDataElseLoad,
-			timeoutInterval: 15
-		)
-
-		if let data = URLCache.shared.cachedResponse(for: request)?.data {
-			callback(.right(data))
-		} else {
-			requestRaw(request: request).run { result in
-				switch result {
-				case let .left(error):
-					callback(.left(error))
-				case let .right((data, response)):
-					let cachedData = CachedURLResponse(response: response, data: data)
-					URLCache.shared.storeCachedResponse(cachedData, for: request)
-					callback(.right(data))
-				}
-			}
-		}
-	}
-}
-
 // MARK: - Raw
-
-private func requestRaw(request: URLRequest?) -> Deferred<Either<Error, (Data, URLResponse)>> {
+public func requestRaw(request: URLRequest?) -> Deferred<Either<Error, (Data, URLResponse)>> {
 
 	var urlTask: URLSessionDataTask?
 
