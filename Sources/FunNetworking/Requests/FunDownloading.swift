@@ -1,6 +1,9 @@
 import Funswift
 import Foundation
+
+#if !os(macOS)
 import UIKit
+#endif
 
 public enum DownloadFilerError: Error {
 	case invalidImageData
@@ -15,7 +18,7 @@ private func createRequest(url: String) -> Either<Error, URLRequest> {
 }
 
 // MARK: - Download Either Request
-public func downloadFile(request: URLRequest?) -> Deferred<Either<Error, Data>> {
+public func downloadFileE(request: URLRequest?) -> Deferred<Either<Error, Data>> {
 
 	Deferred { callback in
 
@@ -39,51 +42,53 @@ public func downloadFile(request: URLRequest?) -> Deferred<Either<Error, Data>> 
 	}
 }
 
-public func downloadFile(url: String) -> Deferred<Either<Error, Data>> {
+public func downloadFileE(url: String) -> Deferred<Either<Error, Data>> {
 	switch createRequest(url: url) {
 	case let .left(error):
 		return Deferred { $0(.left(error)) }
 	case let .right(request):
-		return downloadFile(request:request)
+		return downloadFileE(request:request)
 	}
 }
 
 // MARK: - Download Result Request
-public func downloadFile(request: URLRequest?) -> Deferred<Result<Data, Error>> {
-	downloadFile(request: request)
+public func downloadFileR(request: URLRequest?) -> Deferred<Result<Data, Error>> {
+	downloadFileE(request: request)
 		.map(Result.init(either:))
 }
 
-public func downloadFile(url: String) -> Deferred<Result<Data, Error>> {
-	downloadFile(url: url)
+public func downloadFileR(url: String) -> Deferred<Result<Data, Error>> {
+	downloadFileE(url: url)
 		.map(Result.init(either:))
 }
+
+#if !os(macOS)
 
 // MARK: - Download image with Request
-public func downloadImage(request: URLRequest?) -> Deferred<Result<UIImage?, Error>> {
-	downloadFile(request: request)
+public func downloadImageR(request: URLRequest?) -> Deferred<Result<UIImage?, Error>> {
+	downloadFileE(request: request)
 		.map(Result.init(either:))
 		.mapT(UIImage.init(data:))
 }
 
-public func downloadImage(request: URLRequest?) -> Deferred<Either<Error, UIImage?>> {
-	downloadFile(request: request)
+public func downloadImageE(request: URLRequest?) -> Deferred<Either<Error, UIImage?>> {
+	downloadFileE(request: request)
 		.mapT(UIImage.init(data:))
 }
 
 // MARK: - Download image from raw string
-public func downloadImage(url: String) -> Deferred<Either<Error, UIImage?>> {
+public func downloadImageE(url: String) -> Deferred<Either<Error, UIImage?>> {
 	switch createRequest(url: url) {
 	case let .left(error):
 		return Deferred { $0(.left(error)) }
 	case let .right(request):
-		return downloadImage(request:request)
+		return downloadImageE(request:request)
 	}
 }
 
-public func downloadImage(url: String) -> Deferred<Result<UIImage?, Error>> {
-	downloadImage(url: url)
+public func downloadImageR(url: String) -> Deferred<Result<UIImage?, Error>> {
+	downloadImageE(url: url)
 		.map(Result.init(either:))
 }
 
-
+#endif

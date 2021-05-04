@@ -6,5 +6,7 @@
         <page name='WeatherInfo'/>
         <page name='ChainedRequests'/>
         <page name='ErrorHandling'/>
+        <page name='DownloadImages'/>
+        <page name='CombinedXCED'/>
     </pages>
 </playground>
