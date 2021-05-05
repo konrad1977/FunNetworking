@@ -28,7 +28,7 @@ public func downloadFileE(request: URLRequest?) -> Deferred<Either<Error, Data>>
 		if let data = URLCache.shared.cachedResponse(for: request)?.data {
 			callback(.right(data))
 		} else {
-			requestRaw(request: request).run { result in
+			deferredDataTask(request: request).run { result in
 				switch result {
 				case let .left(error):
 					callback(.left(error))

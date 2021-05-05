@@ -27,7 +27,7 @@ extension Debounce {
         switch self {
         case .exponential,
              .exponential(value):
-            return .exponential(value * 2)
+            return .exponential(value + value)
         case .linear,
              .linear(value):
             return .linear(value)

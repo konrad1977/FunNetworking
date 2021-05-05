@@ -10,6 +10,7 @@ public enum NetworkRequestError: Error {
 	case invalidRequest
 	case invalidResponse(HttpStatusCode)
 	case failed(Error)
+	case noResponse
 }
 
 public func requestSyncR(
@@ -34,11 +35,11 @@ public func requestSyncE(
 public func requestAsyncE(
 	_ request: URLRequest?
 ) -> Deferred<Either<Error, Data>> {
-	requestRaw(request: request).mapT { (data, _) in data }
+	deferredDataTask(request: request).mapT { (data, _) in data }
 }
 
-// MARK: - Raw
-public func requestRaw(request: URLRequest?) -> Deferred<Either<Error, (Data, URLResponse)>> {
+// MARK: - dataTask
+public func deferredDataTask(request: URLRequest?) -> Deferred<Either<Error, (Data, URLResponse)>> {
 
 	var urlTask: URLSessionDataTask?
 
@@ -48,18 +49,29 @@ public func requestRaw(request: URLRequest?) -> Deferred<Either<Error, (Data, UR
 		else { callback(.left(NetworkRequestError.invalidRequest)); return }
 
 		urlTask = URLSession.shared.dataTask(with: request) { data, response, error in
+			callback(NetworkResponseValidator.dataTask.validate(data, response, error))
+		}
+		urlTask?.resume()
+	}
 
-			if let data = data, let response = response as? HTTPURLResponse {
-				switch response.statusCode {
-				case 200..<300:
-					callback(.right((data, response)))
-				default:
-					callback(.left(NetworkRequestError.invalidResponse(response.statusCode)))
-					break
-				}
-			} else if let error = error {
-				callback(.left(NetworkRequestError.failed(error)))
-			}
+	deferred.onCancel = {
+		urlTask?.cancel()
+	}
+	return deferred
+}
+
+// MARK: - dataTask
+public func deferredDownloadTask(request: URLRequest?) -> Deferred<Either<Error, (URL, URLResponse)>> {
+
+	var urlTask: URLSessionDownloadTask?
+
+	var deferred = Deferred<Either<Error, (URL, URLResponse)>> { callback in
+
+		guard let request = request
+		else { callback(.left(NetworkRequestError.invalidRequest)); return }
+
+		urlTask = URLSession.shared.downloadTask(with: request) { data, response, error in
+			callback(NetworkResponseValidator.downloadTask.validate(data, response, error))
 		}
 		urlTask?.resume()
 	}
