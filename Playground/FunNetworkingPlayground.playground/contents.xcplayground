@@ -7,6 +7,6 @@
         <page name='ChainedRequests'/>
         <page name='ErrorHandling'/>
         <page name='DownloadImages'/>
-        <page name='CombinedXCED'/>
+        <page name='Headers'/>
     </pages>
 </playground>
