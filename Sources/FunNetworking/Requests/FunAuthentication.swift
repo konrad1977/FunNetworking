@@ -8,15 +8,40 @@
 import Foundation
 import Funswift
 
-public func login(username: String, password: String) -> (URLRequest) -> URLRequest {
-	return { request in
+public enum AuthorizationType {
+	case basic(username: String, password: String)
+	case bearer(token: String)
+	case custom(header: String, data: String)
 
-		guard let base64EncodedPhrase = "\(username):\(password)"
-			.data(using: .utf8)?
-			.base64EncodedString()
-		else { return request }
-		
-		return request
-			|> setHeader("Basic \(base64EncodedPhrase)", for: "authorization")
+	var type: String {
+		switch self {
+		case .basic:
+			return "Basic"
+		case .bearer:
+			return "Bearer"
+		case let .custom(header,_):
+			return "\(header)"
+		}
+	}
+}
+
+extension AuthorizationType {
+	var headerValue: String {
+		switch self {
+		case let .basic(username, password):
+			return "\(username):\(password)"
+				.data(using: .utf8)?
+				.base64EncodedString() ?? ""
+		case let .bearer(token):
+			return token
+		case let .custom(_, data):
+			return data
+		}
+	}
+}
+
+public func authorization(_ authorization: AuthorizationType) -> (URLRequest) -> URLRequest {
+	{ $0
+		|> setHeader("\(authorization.type) \(authorization.headerValue)", for: "authorization")
 	}
 }

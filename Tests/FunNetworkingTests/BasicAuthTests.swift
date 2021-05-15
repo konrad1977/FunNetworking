@@ -4,17 +4,17 @@ import XCTest
 
 final class BasicAuthTests: XCTestCase {
 
-	func testBasicAuth() {
+	func testBasicAuth() throws {
 
 		let urlRequesstWithTimeout = flip(requestWithCachePolicy(.returnCacheDataElseLoad))
 
-		let request: IO<Result<Data, Error>>
-			= "https://jigsaw.w3.org/HTTP/Basic/"
+		let request = "https://jigsaw.w3.org/HTTP/Basic/"
 			|> URL.init(string:)
 			>=> urlRequesstWithTimeout(15)
-			>=> login(username: "guest", password: "guest") |> logger
-			|> requestSyncR
+			>=> authorization(.basic(username: "guest", password: "guest"))
 
-		dump(request.unsafeRun())
+
+		let authorization = try XCTUnwrap(request?.value(forHTTPHeaderField:"authorization"))
+		XCTAssertEqual(authorization, "Basic Z3Vlc3Q6Z3Vlc3Q=")
 	}
 }

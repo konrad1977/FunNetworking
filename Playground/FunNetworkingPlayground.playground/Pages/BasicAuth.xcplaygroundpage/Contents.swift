@@ -14,7 +14,7 @@ let request: Deferred<Result<Data, Error>>
 	= basicAuthUrl
 	|> URL.init(string:)
 	>=> urlRequesstWithTimeout(15)
-	>=> login(username: "guest", password: "guest") |> logger
+	>=> authorization(.basic(username: "guest", password: "guest")) |> logger
 	|> requestAsyncR
 
 request.run { result in

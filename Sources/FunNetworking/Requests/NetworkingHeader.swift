@@ -15,7 +15,7 @@ public func validHttpHeaders(for request: URLRequest) -> [String: String] {
 public func setHeader(_ value: String, for field: String) -> (URLRequest) -> URLRequest {
 	return { request in
 		var reqCpy = request
-		reqCpy.allHTTPHeaderFields = (validHttpHeaders(for: request) <> [value: field])
+		reqCpy.allHTTPHeaderFields = (validHttpHeaders(for: request) <> [field: value])
 		return reqCpy
 	}
 }

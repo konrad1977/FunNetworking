@@ -24,7 +24,7 @@ final class ImageViewController: UIViewController {
 
 	private func requestImages(for stackView: UIStackView) {
 		zip(
-			downloadImageE(url: createRequest(httpCode: 401)),
+			downloadImageE(url: createRequest(httpCode: 204)),
 			downloadImageE(url: createRequest(httpCode: 500)),
 			downloadImageE(url: createRequest(httpCode: 501))
 		)
