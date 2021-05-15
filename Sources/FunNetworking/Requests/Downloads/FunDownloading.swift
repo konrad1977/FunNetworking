@@ -1,10 +1,6 @@
 import Funswift
 import Foundation
 
-#if !os(macOS)
-import UIKit
-#endif
-
 public enum DownloadFilerError: Error {
 	case invalidImageData
 }
@@ -62,22 +58,20 @@ public func downloadFileR(url: String) -> Deferred<Result<Data, Error>> {
 		.map(Result.init(either:))
 }
 
-#if !os(macOS)
-
 // MARK: - Download image with Request
-public func downloadImageR(request: URLRequest?) -> Deferred<Result<UIImage?, Error>> {
+public func downloadImageR(request: URLRequest?) -> Deferred<Result<FunImage?, Error>> {
 	downloadFileE(request: request)
 		.map(Result.init(either:))
-		.mapT(UIImage.init(data:))
+		.mapT(FunImage.init(data:))
 }
 
-public func downloadImageE(request: URLRequest?) -> Deferred<Either<Error, UIImage?>> {
+public func downloadImageE(request: URLRequest?) -> Deferred<Either<Error, FunImage?>> {
 	downloadFileE(request: request)
-		.mapT(UIImage.init(data:))
+		.mapT(FunImage.init(data:))
 }
 
 // MARK: - Download image from raw string
-public func downloadImageE(url: String) -> Deferred<Either<Error, UIImage?>> {
+public func downloadImageE(url: String) -> Deferred<Either<Error, FunImage?>> {
 	switch createRequest(url: url) {
 	case let .left(error):
 		return Deferred { $0(.left(error)) }
@@ -86,9 +80,7 @@ public func downloadImageE(url: String) -> Deferred<Either<Error, UIImage?>> {
 	}
 }
 
-public func downloadImageR(url: String) -> Deferred<Result<UIImage?, Error>> {
+public func downloadImageR(url: String) -> Deferred<Result<FunImage?, Error>> {
 	downloadImageE(url: url)
 		.map(Result.init(either:))
 }
-
-#endif
