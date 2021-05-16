@@ -24,7 +24,7 @@ func ageGuess(from name: String) -> IO<Result<AgeGuess, Error>> {
 
 zip(
 	ageGuess(from: "Anton"),
-	ageGuess(from: "Jane"),
+	ageGuess(from: "Carina"),
 	ageGuess(from: "John")
 )
 .map(zip)
