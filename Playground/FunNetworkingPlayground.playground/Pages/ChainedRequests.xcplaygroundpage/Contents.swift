@@ -4,7 +4,6 @@ import Foundation
 import FunNetworking
 import Funswift
 
-let requestWithCachePolicy = flip(curry(URLRequest.init(url:cachePolicy:timeoutInterval:)))
 let requestWithTimeout = flip(requestWithCachePolicy(.returnCacheDataElseLoad))
 
 let getIpNumberBase = "https://api.ipify.org/?format=json"

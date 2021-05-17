@@ -7,7 +7,6 @@ import PlaygroundSupport
 
 PlaygroundPage.current.needsIndefiniteExecution = true
 
-let requestWithCachePolicy = flip(curry(URLRequest.init(url:cachePolicy:timeoutInterval:)))
 let urlRequestWithTimeout = flip(requestWithCachePolicy(.returnCacheDataElseLoad))
 
 enum Woeid: Int {
