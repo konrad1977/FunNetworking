@@ -19,8 +19,8 @@ func createRequest(from name: String) -> IO<Result<AgeGuess, Error>> {
 	guard let url = URL(string: endPointWithName(name))
 	else { return IO { .failure(RequestError.invalidUrl) } }
 
-	return requestSyncR(URLRequest(url: url))
-		.map(decodeJsonData)
+    let requestWithRetry = retry(requestSyncR, retries: 3, debounce: .linear(3))
+    return requestWithRetry(URLRequest(url: url)).map(decodeJsonData)
 }
 
 zip(
