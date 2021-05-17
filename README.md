@@ -104,13 +104,47 @@ let result: Result<AgeGuess, Error> = ageGuess().unsafeRun()
 // Handle result
 ```
 
+
+
+### How to do authorization?
+
+FunNetworking support three ways of adding authorization (setting the authorization header)
+
+-  Basic Auth - Simple username password. (base64encoded)
+-  Bearer Auth. 
+- Custom (Supports both custom data and header value fields). If this isn't good enough try using the `setHeader/setHeaders`
+
+###### Example 3.1: Add basic authorization
+
+```swift
+func ageGuessWithBasicAuth(from name: String) -> IO<Result<Data, Error>> {
+	"https://api.agify.io/?name=\(name)"
+		|> URL.init(string:)
+		>=> urlRequesstWithTimeout(30)
+  	|> authorization(.basic(username: "guest", password: "guest")) 
+		|> requestSyncR
+}
+```
+
+###### Example 3.2: Add OAuth authorization
+
+```swift
+func ageGuessWithOAuth(from name: String) -> IO<Result<Data, Error>> {
+	"https://api.agify.io/?name=\(name)"
+		|> URL.init(string:)
+		>=> urlRequesstWithTimeout(30)
+  	|> authorization(.bearer("place custom token here")) 
+		|> requestSyncR
+}
+```
+
 ### How to retry a request?
 
 To do a retry all you need is to replace: `requestAsyncR` with (see line 8)
 
 `retry(requestAsyncR, retries: 3, debounce: .linear(5))`
 
-##### Example 3: Asynchronous request with retry - requestAsyncR
+##### Example 4: Asynchronous request with retry - requestAsyncR
 
 ```swift
 import FunNetworking
