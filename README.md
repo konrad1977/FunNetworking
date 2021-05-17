@@ -65,10 +65,10 @@ import Funswift
 
 func ageGuess(from name: String) -> Deferred<Result<AgeGuess, Error>> {
 	"https://api.agify.io/?name=\(name)"
-  	|> URL.init(string:)
-		>=> urlRequestWithTimeout(30)
-		|> requestAsyncR
-		<&> decodeJsonData
+  	|>	URL.init(string:)
+		>=>	urlRequestWithTimeout(30)
+		|>	requestAsyncR
+		<&>	decodeJsonData
 }
 
 // Get value
@@ -91,10 +91,10 @@ To get the result you need to call `unsafeRun()` which will be block the current
 ```swift
 func ageGuess(from name: String) -> IO<Result<AgeGuess, Error>> {
 	"https://api.agify.io/?name=\(name)"
-  	|> URL.init(string:)
-	  >=> urlRequestWithTimeout(30)
-  	|> requestSyncR
-  	<&> decodeJsonData
+  	|>	URL.init(string:)
+	  >=>	urlRequestWithTimeout(30)
+  	|>	requestSyncR
+  	<&>	decodeJsonData
 }
 
 let result: Result<AgeGuess, Error> = ageGuess().unsafeRun()
@@ -116,10 +116,10 @@ FunNetworking support three ways of adding authorization (setting the authorizat
 ```swift
 func ageGuessWithBasicAuth(from name: String) -> IO<Result<Data, Error>> {
 	"https://api.agify.io/?name=\(name)"
-  	|> URL.init(string:)
-  	>=> urlRequestWithTimeout(30)
-  	|> authorization(.basic(username: "guest", password: "guest"))
-  	|> requestSyncR
+  	|>	URL.init(string:)
+  	>=>	urlRequestWithTimeout(30)
+  	|>	authorization(.basic(username: "guest", password: "guest"))
+  	|>	requestSyncR
 }
 ```
 
@@ -128,10 +128,10 @@ func ageGuessWithBasicAuth(from name: String) -> IO<Result<Data, Error>> {
 ```swift
 func ageGuessWithOAuth(from name: String) -> IO<Result<Data, Error>> {
 	"https://api.agify.io/?name=\(name)"
-  	|> 	URL.init(string:)
-  	>=> urlRequestWithTimeout(30)
-  	|> 	authorization(.bearer("place custom token here"))
-  	|> 	requestSyncR
+  	|>	URL.init(string:)
+  	>=>	urlRequestWithTimeout(30)
+  	|>	authorization(.bearer("place custom token here"))
+  	|>	requestSyncR
 }
 ```
 
