@@ -65,7 +65,7 @@ import Funswift
 
 func ageGuess(from name: String) -> Deferred<Result<AgeGuess, Error>> {
 	"https://api.agify.io/?name=\(name)"
-  	|>	URL.init(string:)
+		|>	URL.init(string:)
 		>=>	urlRequestWithTimeout(30)
 		|>	requestAsyncR
 		<&>	decodeJsonData
@@ -91,10 +91,10 @@ To get the result you need to call `unsafeRun()` which will be block the current
 ```swift
 func ageGuess(from name: String) -> IO<Result<AgeGuess, Error>> {
 	"https://api.agify.io/?name=\(name)"
-  	|>	URL.init(string:)
-	  >=>	urlRequestWithTimeout(30)
-  	|>	requestSyncR
-  	<&>	decodeJsonData
+	  |>	URL.init(string:)
+		>=>	urlRequestWithTimeout(30)
+		|>	requestSyncR
+		<&>	decodeJsonData
 }
 
 let result: Result<AgeGuess, Error> = ageGuess().unsafeRun()
