@@ -8,7 +8,7 @@ import PlaygroundSupport
 PlaygroundPage.current.needsIndefiniteExecution = true
 
 let requestWithCachePolicy = flip(curry(URLRequest.init(url:cachePolicy:timeoutInterval:)))
-let urlRequesstWithTimeout = flip(requestWithCachePolicy(.returnCacheDataElseLoad))
+let urlRequestWithTimeout = flip(requestWithCachePolicy(.returnCacheDataElseLoad))
 
 enum Woeid: Int {
 	case copenhagen = 554890
@@ -43,7 +43,7 @@ func weatherInfo(for id: Woeid) -> Deferred<Result<WeatherInformation, Error>> {
 	baseUrl
 		|> networkPathForId(id.rawValue) 	                        //|> logger
 		|> URL.init(string:) 				                        //|> logger
-		>=> urlRequesstWithTimeout(30) 		                        //|> logger
+		>=> urlRequestWithTimeout(30) 		                        //|> logger
         |> retry(requestAsyncR, retries: 3, debounce: .linear(2))   //|> logger
 		<&> decodeJsonData(with: weatherDecoder)
 }

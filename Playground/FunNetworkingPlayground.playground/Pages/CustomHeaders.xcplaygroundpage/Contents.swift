@@ -7,13 +7,13 @@ import PlaygroundSupport
 
 PlaygroundPage.current.needsIndefiniteExecution = true
 
-let urlRequesstWithTimeout = flip(requestWithCachePolicy(.returnCacheDataElseLoad))
+let urlRequestWithTimeout = flip(requestWithCachePolicy(.returnCacheDataElseLoad))
 let gitIgnoreTemplates = "https://api.github.com/gitignore/templates"
 
 let request: IO<Result<[String], Error>>
 	= gitIgnoreTemplates
 	|> URL.init(string:)
-	>=> urlRequesstWithTimeout(15)
+	>=> urlRequestWithTimeout(15)
 	>=> setHeader("application/vnd.github.v3+json", for: "Accept")
 	|> requestSyncR
 	<&> decodeJsonData
