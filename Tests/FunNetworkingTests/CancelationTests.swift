@@ -8,7 +8,7 @@ final class CancelationTests: XCTestCase {
 
         let request = URL(string: "https://api.ipify.org/?format=json")
             .flatMap { URLRequest(url: $0, cachePolicy: .returnCacheDataElseLoad, timeoutInterval: 10) }
-        let result = requestAsyncE(request)
+        var result = requestAsyncE(request)
 
         XCTAssertNotNil(result.onCancel)
 

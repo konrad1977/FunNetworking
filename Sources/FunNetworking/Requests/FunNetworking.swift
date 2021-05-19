@@ -42,7 +42,7 @@ public func requestAsyncE(
 public func deferredDataTask(request: URLRequest?) -> Deferred<Either<Error, (Data, URLResponse)>> {
 
 	var urlTask: URLSessionDataTask?
-
+    
 	var deferred = Deferred<Either<Error, (Data, URLResponse)>> { callback in
 
 		guard let request = request
@@ -54,9 +54,9 @@ public func deferredDataTask(request: URLRequest?) -> Deferred<Either<Error, (Da
 		urlTask?.resume()
 	}
 
-	deferred.onCancel = {
-		urlTask?.cancel()
-	}
+    deferred.onCancel = {
+        urlTask?.cancel()
+    }
 	return deferred
 }
 
@@ -76,8 +76,8 @@ public func deferredDownloadTask(request: URLRequest?) -> Deferred<Either<Error,
 		urlTask?.resume()
 	}
 
-	deferred.onCancel = {
-		urlTask?.cancel()
-	}
+    deferred.onCancel = {
+        urlTask?.cancel()
+    }
 	return deferred
 }
