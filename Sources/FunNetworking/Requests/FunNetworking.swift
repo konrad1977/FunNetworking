@@ -11,6 +11,7 @@ public enum NetworkRequestError: Error {
 	case invalidResponse(HttpStatusCode)
 	case failed(Error)
 	case noResponse
+    case canceledByUser
 }
 
 public func requestSyncR(
@@ -42,19 +43,23 @@ public func requestAsyncE(
 public func deferredDataTask(request: URLRequest?) -> Deferred<Either<Error, (Data, URLResponse)>> {
 
 	var urlTask: URLSessionDataTask?
-    
+    var canceled = false
+
 	var deferred = Deferred<Either<Error, (Data, URLResponse)>> { callback in
 
 		guard let request = request
 		else { callback(.left(NetworkRequestError.invalidRequest)); return }
 
 		urlTask = URLSession.shared.dataTask(with: request) { data, response, error in
-			callback(NetworkResponseValidator.dataTask.validate(data, response, error))
+            canceled
+                ? callback(.left(NetworkRequestError.canceledByUser))
+                : callback(NetworkResponseValidator.dataTask.validate(data, response, error))
 		}
 		urlTask?.resume()
 	}
 
     deferred.onCancel = {
+        canceled = true
         urlTask?.cancel()
     }
 	return deferred
@@ -64,6 +69,7 @@ public func deferredDataTask(request: URLRequest?) -> Deferred<Either<Error, (Da
 public func deferredDownloadTask(request: URLRequest?) -> Deferred<Either<Error, (URL, URLResponse)>> {
 
 	var urlTask: URLSessionDownloadTask?
+    var canceled = false
 
 	var deferred = Deferred<Either<Error, (URL, URLResponse)>> { callback in
 
@@ -71,12 +77,15 @@ public func deferredDownloadTask(request: URLRequest?) -> Deferred<Either<Error,
 		else { callback(.left(NetworkRequestError.invalidRequest)); return }
 
 		urlTask = URLSession.shared.downloadTask(with: request) { data, response, error in
-			callback(NetworkResponseValidator.downloadTask.validate(data, response, error))
+            canceled
+                ? callback(.left(NetworkRequestError.canceledByUser))
+                : callback(NetworkResponseValidator.dataTask.validate(data, response, error))
 		}
 		urlTask?.resume()
 	}
 
     deferred.onCancel = {
+        canceled = true
         urlTask?.cancel()
     }
 	return deferred
