@@ -10,6 +10,7 @@ final class CancelationTests: XCTestCase {
             .flatMap { URLRequest(url: $0, cachePolicy: .returnCacheDataElseLoad, timeoutInterval: 10) }
         let result = requestAsyncE(request)
 
+        XCTAssertTrue(result.canCancel)
         XCTAssertNotNil(result.onCancel)
 
         let expectation = XCTestExpectation(description: "WaitingResult")
@@ -20,6 +21,7 @@ final class CancelationTests: XCTestCase {
             expectation.fulfill()
         }
 
+        debugPrint(result)
         wait(for: [expectation], timeout: 2)
     }
 }

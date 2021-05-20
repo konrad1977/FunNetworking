@@ -19,7 +19,7 @@ struct WeatherInformation: Decodable {
 	let title: String, consolidatedWeather: [Condition]
 
 	struct Condition: Decodable {
-		let weatherStateName: String, minTemp: Double, maxTemp: Double
+		let weatherStateName: String, minTemp, maxTemp: Double
 	}
 }
 
@@ -36,10 +36,8 @@ let networkPathForId: (Int) -> (String) -> String = {
 	id in { base in base + "location/\(id)" }
 }
 
-let baseUrl = "https://www.metaweather.com/api/"
-
 func weatherInfo(for id: Woeid) -> Deferred<Result<WeatherInformation, Error>> {
-	baseUrl
+    "https://www.metaweather.com/api/"
 		|> networkPathForId(id.rawValue) 	                        //|> logger
 		|> URL.init(string:) 				                        //|> logger
 		>=> urlRequestWithTimeout(30) 		                        //|> logger
