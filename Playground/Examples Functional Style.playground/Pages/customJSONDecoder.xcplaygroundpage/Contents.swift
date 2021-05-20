@@ -38,7 +38,7 @@ let networkPathForId: (Int) -> (String) -> String = {
 
 func weatherInfo(for id: Woeid) -> Deferred<Result<WeatherInformation, Error>> {
     "https://www.metaweather.com/api/"
-		|> networkPathForId(id.rawValue) 	                        //|> logger
+		|> networkPathForId(id.rawValue) 	                         // |> logger
 		|> URL.init(string:) 				                        //|> logger
 		>=> urlRequestWithTimeout(30) 		                        //|> logger
         |> retry(requestAsyncR, retries: 3, debounce: .linear(2))   //|> logger
@@ -52,7 +52,7 @@ zip(
 )
 .map(zip)
 .run { result in
-    dump(result)
+    //dump(result)
 }
 
 

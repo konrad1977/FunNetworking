@@ -4,9 +4,9 @@ import Foundation
 import FunNetworking
 import Funswift
 
+
 let requestWithTimeout = flip(requestWithCachePolicy(.returnCacheDataElseLoad))
 
-let getIpNumberBase = "https://api.ipify.org/?format=json"
 let getIpInfoUrl: (Host) -> String = { host in "https://ipinfo.io/\(host.ip)/geo" }
 
 struct Host: Decodable { let ip: String }
@@ -15,7 +15,7 @@ struct IpInfo: Decodable {
 }
 
 let fetchIpNumber: IO<Either<Error, Host>> = {
-	getIpNumberBase
+    "https://api.ipify.org/?format=json"
 		|> URL.init(string:)
 		>=> requestWithTimeout(30)
 		|> requestSyncE
@@ -44,4 +44,20 @@ dump(ipInfoFetcher.unsafeRun())
 //    .flatMap(fetchHostInfo)
 //    .unsafeRun()
 
-//: [Next](@next)
+
+func curry2<A, B, C>(
+    _ f: @escaping (A, B) -> C)
+-> (A) -> (B) -> C {
+    return { a in { b in f(a,b) } }
+}
+
+curry2(String.init(data:encoding:))
+let stringFromDataWithEncoding = flip(curry2(String.init(data:encoding:)))
+
+stringFromDataWithEncoding(.utf8)
+
+
+func pipe<A, B>(_ value: A, _ f: (A) -> B) -> B {
+    f(value)
+}
+

@@ -21,17 +21,23 @@ func ageGuessWithRetryFrom(_ request: URLRequest?) -> IO<Result<AgeGuess, Error>
     return requestWithRetry(request).map(decodeJsonData)
 }
 
-func ageGuessFrom(_ request: URLRequest?) -> IO<Result<AgeGuess, Error>> {
-    requestSyncR(request)
-        .map(decodeJsonData)
+//func ageGuessFrom(_ request: URLRequest?) -> IO<Result<AgeGuess, Error>> {
+//    let requestFunc = retry(requestSyncR, retries: 3, debounce: .linear(5))
+//    return requestFunc(request).map(decodeJsonData)
+//}
+
+func ageGuessFrom(_ request: URLRequest?) -> Deferred<Result<AgeGuess, Error>> {
+    let requestFunc = retry(requestAsyncR, retries: 3, debounce: .linear(5))
+    return requestFunc(request).map(decodeJsonData)
 }
 
+
 zip(
-    ageGuessWithRetryFrom(createAgifyRequest(for: "Mikael")),
-    ageGuessFrom(createAgifyRequest(for: "Jane"))
+    ageGuessFrom(createAgifyRequest(for: "Frida")),
+    ageGuessFrom(createAgifyRequest(for: "Anton")),
+    ageGuessFrom(createAgifyRequest(for: "Emil"))
 )
 .map(zip)
-.unsafeRun()
-.onSuccess { dump($0) }
-.onFailure { dump($0) }
-
+.run { result in
+    dump(result)
+}
