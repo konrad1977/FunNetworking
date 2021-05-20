@@ -45,3 +45,5 @@ public func authorization(_ authorization: AuthorizationType) -> (URLRequest) ->
 		|> setHeader("\(authorization.type) \(authorization.headerValue)", for: "authorization")
 	}
 }
+
+public let authorizationWith = uncurry(flip(authorization))

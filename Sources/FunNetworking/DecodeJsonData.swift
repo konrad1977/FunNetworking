@@ -12,6 +12,7 @@ private func decodeJsonDataResult<T: Decodable>(
 	result: Result<Data, Error>,
 	decoder: JSONDecoder
 ) -> Result<T, Error> {
+    
 	switch result {
 	case let .failure(error):
 		return Result<T, Error>.failure(error)

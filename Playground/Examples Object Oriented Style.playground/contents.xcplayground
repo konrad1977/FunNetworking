@@ -3,5 +3,6 @@
     <pages>
         <page name='agePrediction'/>
         <page name='customJSONDecoder'/>
+        <page name='BasicAuth'/>
     </pages>
 </playground>
