@@ -23,6 +23,8 @@ let package = Package(
 
 [Key features](#Key features)
 
+[Intro](#intro)
+
 [Request types](#Request types)
 
 - [Asynchrounous Request](#Asynchrounous Request)
@@ -32,7 +34,15 @@ let package = Package(
 
 - [Basic](#Example 3.1: Add basic authorization)
 - [OAuth](#Example 3.2: Add OAuth authorization)
-- Custom
+- [Custom](#Example 3.3: Custom)
+
+[How to retry a request?](#How to retry a request?)
+
+- [Debouncing](#Debouncing)
+
+[Cancellation](#Cancellation)
+
+[Operators](#Operators)
 
 ## Key features
 
@@ -68,6 +78,21 @@ let package = Package(
 - Built in **decoding** of JSON-data. 
 
   - Built in easy to use jsonDecoding. Need a more speciliced JSONDecoder configuration? Just inject your own. 
+
+
+
+## Intro
+
+FunNetworking is an easy to use network wrapper. Its philosophy is to write logicial flow of network code using monads. My personal view is that network code is often widely spread in a project and it can be really hard to follow and debug. Its often like this: the request is made, there is a callback somewhere, there is a retryability handler that steps in somewhere and you are lost when things doesnt work as you expected. FunNetworking tries to solve these problems by keeping the implementation as close as possible to its usage. In FunNetworking to add retry to your request, you just use a [higher order function that](https://en.wikipedia.org/wiki/Higher-order_function) will product a new function that handles the retryability, no callbacks or sprinkling of code all over the codebase.
+
+FunNetworking is of course a pun, it stands for both functional and fun. But dont fear, it fits perfectly in a object oriented enviroment as well.
+
+##### Before you start, you need to import both FunNetworking and Funswift
+
+```swift
+import FunNetworking
+import Funswift
+```
 
 ## Request types
 
@@ -127,9 +152,52 @@ let result: Result<AgeGuess, Error> = ageGuess().unsafeRun()
 
 
 
-How to do chaining?
+## How to do chaining?
 
-### How to do authorization?
+We can easily do chaining using flatmap or using the bind operator `>>-`. 
+
+##### Example of chaining operations
+
+```swift
+let fetchIpNumber: IO<Either<Error, Host>> = {
+    "https://api.ipify.org/?format=json"
+		|> URL.init(string:)
+		>=> requestWithTimeout(30)
+		|> requestSyncE
+		<&> decodeJsonData
+}()
+
+func ipInfoFrom(_ host: Host) -> IO<Either<Error, IpInfo>> {
+	"https://ipinfo.io/\(host.ip)/geo"
+		|> URL.init(string:)
+		>=> requestWithTimeout(30)
+		|> retry(requestSyncE, retries: 3, debounce: .linear(2))
+		<&> decodeJsonData
+}
+
+let fetchHostInfo: (Either<Error, Host>) -> IO<Either<Error, IpInfo>> = { 
+  result in
+	switch result {
+	case let .right(host):
+		return ipInfoFrom(host)
+	case let .left(error):
+		return IO { .left(error) }
+	}
+}
+
+let ipInfoFetcher = fetchIpNumber >>- fetchHostInfo
+ipInfoFetcher.unsafeRun()
+```
+
+1. `fetchIpNumber` does a request to fetch the IP-number.
+
+2. `fetchHostInfo` takes the result of the first request and creates a new request.
+
+   -  `fetchIpNumber >>- fetchHostInfo` chains them, but you could use flatMap instead
+
+   - `fetchIpNumber.flatMap(fetchHostInfo)`
+
+## How to do authorization?
 
 FunNetworking support three ways of adding authorization (setting the authorization header)
 
@@ -179,7 +247,7 @@ func ageGuessWithOAuth(from name: String) -> IO<Result<Data, Error>> {
 
 Result from 3.3: httpHeaders: ["Authorization" : "CustomField 5-53455345g"]
 
-### How to retry a request?
+## How to retry a request?
 
 To do a retry all you need is to replace: `requestAsyncR` with `retry(requestAsyncR, retries: 3, debounce: .linear(5))`
 
@@ -211,7 +279,7 @@ Debouncing will sleep the thread a period of time before making the same request
 
 
 
-### Cancellation
+## Cancellation
 
 You can either call `cancel()` directly on Deferred or add requests to a list of `AnyCancellableDeferred` to cancel all at once. When you're using `Zip` FunNetworking will automatically cancel all requests in the zip.
 
