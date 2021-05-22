@@ -32,10 +32,6 @@ let package = Package(
 
 [How to do authorization?](#How-to-do-authorization?)
 
-- [Basic](#Example-3.1:-Add-basic-authorization)
-- [OAuth](#Example-3.2:-Add-OAuth-authorization)
-- [Custom](#Example-3.3:-Custom)
-
 [How to retry a request?](#How-to-retry-a-request?)
 
 - [Debouncing](#Debouncing)
