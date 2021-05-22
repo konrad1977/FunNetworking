@@ -1,5 +1,3 @@
-//: [Previous](@previous)
-
 import Foundation
 import FunNetworking
 import Funswift
@@ -9,12 +7,8 @@ PlaygroundPage.current.needsIndefiniteExecution = true
 
 let urlRequestWithTimeout = flip(requestWithCachePolicy(.returnCacheDataElseLoad))
 
-struct AgeGuess: Decodable { let name: String, age: Int, count: Int }
-
-func endpoint(from name: String) -> String { "https://api.agify.io/?name=\(name)" }
-
-func ageGuess(from name: String) -> IO<Result<AgeGuess, Error>> {
-	endpoint(from: name)
+func ageGuess(from name: String) -> IO<Result<Guess, Error>> {
+	"https://api.agify.io/?name=\(name)"
 		|> URL.init(string:)
 		>=> urlRequestWithTimeout(30)
 		|> requestSyncR
@@ -30,8 +24,3 @@ zip(
 	.unsafeRun()
 	.onSuccess { dump($0) }
 	.onFailure { print($0) }
-
-//: [Next](@next)
-
-
-

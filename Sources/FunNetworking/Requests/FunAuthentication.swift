@@ -11,7 +11,7 @@ import Funswift
 public enum AuthorizationType {
 	case basic(username: String, password: String)
 	case bearer(token: String)
-	case custom(header: String, data: String)
+	case custom(field: String, data: String)
 
 	var type: String {
 		switch self {
@@ -19,8 +19,8 @@ public enum AuthorizationType {
 			return "Basic"
 		case .bearer:
 			return "Bearer"
-		case let .custom(header,_):
-			return "\(header)"
+		case let .custom(field,_):
+			return "\(field)"
 		}
 	}
 }

@@ -17,6 +17,23 @@ let package = Package(
 )
 ```
 
+
+
+# Table of content
+
+[Key features](#Key features)
+
+[Request types](#Request types)
+
+- [Asynchrounous Request](#Asynchrounous Request)
+- [Synchrounous Request](#Synchrounous Request)
+
+[How to do authorization?](#How to do authorization?)
+
+- [Basic](#Example 3.1: Add basic authorization)
+- [OAuth](#Example 3.2: Add OAuth authorization)
+- Custom
+
 ## Key features
 
 *FunNetworking is backed by [FunSwift](https://github.com/konrad1977/funswift) a library to do functional programming in Swift. FunNetworking supports different paradigms, you dont have to use operators or write your code in functional style.*
@@ -68,9 +85,6 @@ To get the result you need to `run` the monad.
 ##### Example 1: Asynchronous request - requestAsyncR
 
 ```swift
-import FunNetworking
-import Funswift
-
 func ageGuess(from name: String) -> Deferred<Result<AgeGuess, Error>> {
 	"https://api.agify.io/?name=\(name)"
 		|>	URL.init(string:)
@@ -113,6 +127,8 @@ let result: Result<AgeGuess, Error> = ageGuess().unsafeRun()
 
 
 
+How to do chaining?
+
 ### How to do authorization?
 
 FunNetworking support three ways of adding authorization (setting the authorization header)
@@ -133,6 +149,8 @@ func ageGuessWithBasicAuth(from name: String) -> IO<Result<Data, Error>> {
 }
 ```
 
+*Result from 3.1 - httpHeaders: ["Authorization" : "Basic Z3Vlc3Q6Z3Vlc3Q="]*
+
 ###### Example 3.2: Add OAuth authorization
 
 ```swift
@@ -140,12 +158,26 @@ func ageGuessWithOAuth(from name: String) -> IO<Result<Data, Error>> {
 	"https://api.agify.io/?name=\(name)"
   	|>	URL.init(string:)
   	>=>	urlRequestWithTimeout(30)
-  	|>	authorization(.bearer("place custom token here"))
+  	|>	authorization(.bearer("secret-token-123"))
   	|>	requestSyncR
 }
 ```
 
+*Result from 3.2: httpHeaders: ["Authorization" : "Bearer secret-token-123"]*
 
+###### Example 3.3: Custom
+
+```swift
+func ageGuessWithOAuth(from name: String) -> IO<Result<Data, Error>> {
+	"https://api.agify.io/?name=\(name)"
+  	|>	URL.init(string:)
+  	>=>	urlRequestWithTimeout(30)
+  	|>	authorization(.custom(field: "CustomField", data: "5-53455345g"))
+  	|>	requestSyncR
+}
+```
+
+Result from 3.3: httpHeaders: ["Authorization" : "CustomField 5-53455345g"]
 
 ### How to retry a request?
 

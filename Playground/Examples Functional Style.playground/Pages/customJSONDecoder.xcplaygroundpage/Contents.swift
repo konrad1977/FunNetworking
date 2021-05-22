@@ -1,5 +1,3 @@
-//: [Previous](@previous)
-
 import Foundation
 import FunNetworking
 import Funswift
@@ -8,20 +6,6 @@ import PlaygroundSupport
 PlaygroundPage.current.needsIndefiniteExecution = true
 
 let urlRequestWithTimeout = flip(requestWithCachePolicy(.returnCacheDataElseLoad))
-
-enum Woeid: Int {
-	case copenhagen = 554890
-	case london = 44418
-	case stockholm = 906057
-}
-
-struct WeatherInformation: Decodable {
-	let title: String, consolidatedWeather: [Condition]
-
-	struct Condition: Decodable {
-		let weatherStateName: String, minTemp, maxTemp: Double
-	}
-}
 
 let weatherDecoder: JSONDecoder = {
 	let jsonDecoder = JSONDecoder()
@@ -36,9 +20,9 @@ let networkPathForId: (Int) -> (String) -> String = {
 	id in { base in base + "location/\(id)" }
 }
 
-func weatherInfo(for id: Woeid) -> Deferred<Result<WeatherInformation, Error>> {
+func weatherInfo(for id: Woeid) -> Deferred<Result<Weather, Error>> {
     "https://www.metaweather.com/api/"
-		|> networkPathForId(id.rawValue) 	                         // |> logger
+		|> networkPathForId(id.rawValue) 	                        // |> logger
 		|> URL.init(string:) 				                        //|> logger
 		>=> urlRequestWithTimeout(30) 		                        //|> logger
         |> retry(requestAsyncR, retries: 3, debounce: .linear(2))   //|> logger
@@ -55,5 +39,3 @@ zip(
     //dump(result)
 }
 
-
-//: [Next](@next)
